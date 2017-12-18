@@ -1,0 +1,7 @@
+Base path: C:/Program Files/Unity/Editor/Data
+Cmd: initializeCompiler
+Cmd: compileComputeKernel
+  error: 1 plat 4 at Compute.compute(22): implicit truncation of vector type
+  error: 1 plat 4 at Compute.compute(110): signed/unsigned mismatch, unsigned assumed
+  error: 1 plat 4 at Compute.compute(134): signed/unsigned mismatch, unsigned assumed
+  api=4 insize=3539 outsize=17785 ok=1
