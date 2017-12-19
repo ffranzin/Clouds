@@ -82,8 +82,8 @@ public class CameraController : MonoBehaviour {
     {
         if(Input.GetKeyDown(KeyCode.Alpha1))
         {
-            transform.position = new Vector3(670, 10, 430);
-            transform.rotation = Quaternion.Euler(-17, 16, 0);
+            transform.position = new Vector3(0, 0, 0);
+            transform.rotation = Quaternion.Euler(0, 0, 0);
             cameraEnabled = true;
         }
         else if (Input.GetKeyDown(KeyCode.Alpha2))

@@ -190,6 +190,8 @@ public class Cloud : MonoBehaviour {
         EffectMaterial.SetFloat("_erode", erode);
         EffectMaterial.SetTexture("_WeatherTex", coverage);
 
+        EffectMaterial.SetVector("_LightColor", light.GetComponent<Light>().color);
+
         EffectMaterial.SetVector("lightDir", light.transform.forward);
 
         EffectMaterial.SetVector("_CloudHeight", new Vector4(BottomCloudHeight, TopCloudHeight, TopCloudHeight - BottomCloudHeight, EarthRadius));

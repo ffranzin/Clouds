@@ -91,7 +91,7 @@ Shader "CloudSystem"
 
 	uniform float _AmbientLightIntensity;
 	uniform float _SunLightIntensity;
-	float4 _LightColor0;
+	float4 _LightColor;
 
 	uniform float3 VIEWER_DIR;
 	uniform float3 VIEWER_POS;
@@ -104,7 +104,6 @@ Shader "CloudSystem"
 	float4 lightDir;
 
 	const float INFINITY = 1e15;
-
 	const float3 RandomUnitSphere[6] =
 	{
 		{ 0.3, -0.8, -0.5 },
@@ -114,14 +113,9 @@ Shader "CloudSystem"
 		{ -1.0, 0.3, 0.0 },
 		{ -0.3, 0.9, 0.4 }
 	};
-
-
-
-
-	int test = 0;
+	
 	int int_test;
 	float float_test;
-
 
 
 	float Remap(float org_val,float org_min,float org_max,float new_min,float new_max)
@@ -149,8 +143,8 @@ Shader "CloudSystem"
 
 	float RayPlaneIntersect(float3 ro, float planeHeight)
 	{
-		float3 planeNormal = float3(0,1,0);
-		float3 planeOrigin = float3(0,planeHeight,0);
+		float3 planeNormal = float3(0, 1, 0);
+		float3 planeOrigin = float3(0, planeHeight, 0);
 		float3 rayDir = VIEWER_DIR;
 
 		float d = dot(rayDir, planeNormal);
@@ -188,7 +182,7 @@ Shader "CloudSystem"
 
 	float3 SampleWeather(float3 pos)
 	{
-		float2 unit = pos.xz *_WeatherTexUVScale / 300000.0;
+		float2 unit = pos.xz / (_WeatherTexUVScale * 100000.0);
 
 		float2 uv = unit * 0.5 + 0.5;
 
@@ -202,9 +196,8 @@ Shader "CloudSystem"
 		float top = RayPlaneIntersect(eyePosition, CLOUD_HEIGHT_TOP);
 
 		if (bottom > top)
-			return float2(top, bottom);
-
-		return float2(bottom, top);
+			return float2(bottom, top);
+		return float2(top, bottom);
 	}
 
 
@@ -243,18 +236,6 @@ Shader "CloudSystem"
 	}
 
 		
-
-
-
-
-	//////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////
-	///////////////// ^ FUNCOES INVARIAVEIS ^ ////////////////////
-	//////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////
-
-
-
 	float SampleCloud(float3 pos, float height, float3 weatherData, bool sampleDetail)
 	{
 		const float baseFreq = 1e-6;
@@ -269,16 +250,16 @@ Shader "CloudSystem"
 		cloudDensity = Remap(cloudDensity, 1-baseFbm, 1.0, 0.0, 1.0);
 		
 		float weatherType = weatherData.b;
+		
+		cloudDensity *= weatherType;
 
 		float gradient = tex2Dlod(_Gradient, float4(((cloudType *.3)), height, 0, 0)).r;
-
+		
 		cloudDensity *= gradient;
 		
-		cloudDensity *= weatherData.r;
-
 		cloudDensity = Remap(cloudDensity, 0, _NoiseThreshold, 0.0, 1.0);
 		
-		if (sampleDetail)
+		if (sampleDetail && cloudDensity > 0)
 		{
 			coord = float4(pos * baseFreq * _erode * _DetailNoiseTexUVScale * 100, 0.0);
 
@@ -310,24 +291,10 @@ Shader "CloudSystem"
 	}
 
 
-	float energy(float light_samples)
-	{
-		float powder_sugar_effect = 1.0 - exp( - light_samples * 2.0 );
-
-		float beers_law = exp ( - light_samples );
-
-		float light_energy = 2.0 * beers_law * powder_sugar_effect ;
-		
-		return light_energy;
-	}
-
-
-
-
 	float3 SampleLight(float3 pos, float3 LightDirection, float3 LightColor, float inScatteringAngle)
 	{
 		const int _MaxSteps = 6;
-		float sunRayStepLength = (_CloudHeight.z * _CloudParams.y) / ((float)_MaxSteps);
+		float sunRayStepLength = (CLOUD_TRICKNESS * CLOUD_HEIGHT_TOP) / ((float)_MaxSteps);
 		float3 sunRayStep = LightDirection * sunRayStepLength;
 		pos += 0.5 * sunRayStep;
 
@@ -337,9 +304,7 @@ Shader "CloudSystem"
 		{
 			float3 randomOffset = RandomUnitSphere[i] * sunRayStepLength * 0.25 * ((float)(i + 1));
 
-			pos += randomOffset;
-
-			float3 samplePos = pos;
+			float3 samplePos = pos + randomOffset;
 
 			float height = CalcHeight(samplePos);
 
@@ -354,16 +319,12 @@ Shader "CloudSystem"
 
 		float hg = PhaseHenyeyGreenStein(inScatteringAngle, _Hg);
 
-		return LightColor * energy(opticalDepth) * hg;
-
 		float extinct = Beer(opticalDepth);
 
 		return LightColor * extinct * hg;
 	}
 
 	
-
-
 
 	//////////////////////////////////////////////////
 	//////////    Fragment Program   /////////////////
@@ -378,26 +339,35 @@ Shader "CloudSystem"
 
 		float3 EyePosition		= _WorldSpaceCameraPos;
 		float3 LightDirection	= -normalize(lightDir);
-		float3 LightColor		= _LightColor0.xyz;
+		float3 LightColor		= _LightColor.xyz;
 
 		VIEWER_DIR = normalize(Input.cameraRay);
 		VIEWER_POS = _WorldSpaceCameraPos;
 
-		
 		CLOUD_HEIGHT_BOTTOM = _CloudHeight.x;
 		CLOUD_HEIGHT_TOP	= _CloudHeight.y;
 		CLOUD_TRICKNESS		= _CloudHeight.z;
 		PLANET_RADIUS		= _CloudHeight.w;
-		PLANET_CENTER		= float3(0.0, 0.0, 0.0);
+		PLANET_CENTER		= 0.0;
 		
-
 		
-		float2 CloudHitDistance = GetHitSphericalDistance(EyePosition);
-		//float2 CloudHitDistance = GetHitPlanarDistance(EyePosition);
+		float bottom = RayPlaneIntersect(EyePosition, CLOUD_HEIGHT_BOTTOM);
+		float top = RayPlaneIntersect(EyePosition, CLOUD_HEIGHT_TOP);
 
-		if (CloudHitDistance.x > depth)
-			clip(-1);
+		if(bottom < INFINITY)
+			return fixed4(0,0,1,1);
+		if(top < INFINITY)
+			return fixed4(0,1,1,1);
 
+
+
+		//float2 CloudHitDistance = GetHitSphericalDistance(EyePosition);
+		float2 CloudHitDistance = GetHitPlanarDistance(EyePosition);
+
+		//if (CloudHitDistance.x > depth)		//clip(-1);
+		//	return fixed4(1,1,0,1);
+		
+		return fixed4(1,0,0,1);
 		CloudHitDistance.y = min(depth, CloudHitDistance.y);
 
 		float inScatteringAngle = dot(VIEWER_DIR, LightDirection);
@@ -407,7 +377,7 @@ Shader "CloudSystem"
 		float3 rayStep = VIEWER_DIR * rayStepLength;
 
 		float3 pos = EyePosition + (CloudHitDistance.x * VIEWER_DIR);
-
+	
 		float extinct = 1.0;
 
 		float opticalDepth = 0.0;
@@ -423,16 +393,18 @@ Shader "CloudSystem"
 			float3 weatherData = SampleWeather(pos);
 
 			float cloudDensity = SampleCloud(pos, height, weatherData, true);
-			
+
 			if (cloudDensity > 0.01)
 			{
-				float3 ambientLight = AmbientLighting(height);
+				float transmittance = 1 - (opticalDepth * (1 / CLOUD_TRICKNESS));
+
+				float3 ambientLight = AmbientLighting(height) * transmittance;
 
 				float3 sunLight = SampleLight(pos, LightDirection, LightColor, inScatteringAngle);
 
 				float currentOpticalDepth = cloudDensity * rayStepLength * _CloudParams.z;
 
-				ambientLight *= _AmbientLightIntensity * 0.01f * currentOpticalDepth;
+				ambientLight *= _AmbientLightIntensity * 0.01 * currentOpticalDepth;
 				
 				sunLight *= _SunLightIntensity * currentOpticalDepth;
 
@@ -441,14 +413,14 @@ Shader "CloudSystem"
 				extinct = Beer(opticalDepth);
 
 				color.rgb += (ambientLight + sunLight) * extinct;
-			}      
+			}
 
 			pos += rayStep;
 		}
 
 		color.a = 1.0 - Beer(opticalDepth);
 
-		float horizonFade = (1 - saturate(5 / _HorizonParams.w));
+		float horizonFade = (1 - saturate(5 / PLANET_RADIUS));
 		color *= horizonFade;
 		return fixed4(color);
 

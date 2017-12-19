@@ -17,7 +17,8 @@ public class Tests : MonoBehaviour
     
     void Update()
     {
-        ShowCorners();
+        RayPlaneIntersect();
+        //ShowCorners();
     }
     
 
@@ -86,6 +87,30 @@ public class Tests : MonoBehaviour
         for (int i = 0; i < 1; i++)
             for (int j = 0; j < 5; j++)
                 Debug.DrawRay(Camera.main.transform.position, frustumCorners[i, j] * 3, Color.red);
+    }
+
+
+
+
+    void RayPlaneIntersect()
+    {
+        Transform camera = Camera.main.transform;
+        Vector3 planeNormal = new Vector3(0, 1, 0);
+        Vector3 planeOrigin = new Vector3(0, 0, 0);
+        Vector3 ro = camera.position;
+        Vector3 rayDir = camera.forward;
+        
+        
+        float d = Vector3.Dot(rayDir, planeNormal);
+
+        if (Mathf.Abs(d) > 1e-6)
+        {
+            float t = (Vector3.Dot(planeNormal, planeOrigin - ro)) / Vector3.Dot(planeNormal, rayDir);
+
+            if (t >= 0)
+                Debug.DrawRay(camera.position, rayDir * t, Color.blue);
+        }
+        Debug.Log("No collision");
     }
 
 
