@@ -360,11 +360,11 @@ Shader "CloudSystem"
 		CLOUD_HEIGHT_TOP	= _CloudHeight.y;
 		CLOUD_TRICKNESS		= _CloudHeight.z;
 		PLANET_RADIUS		= _CloudHeight.w;
-		PLANET_CENTER		= 0.0;
+		PLANET_CENTER		= float3(0, -PLANET_RADIUS, 0);
 
 		float2 CloudHitDistance = GetHitSphericalDistance(EyePosition);
 
-		//if (CloudHitDistance.x > depth)		clip(-1);
+		clip(depth - CloudHitDistance.x);
 
 		//CloudHitDistance.y = min(depth, CloudHitDistance.y);
 
@@ -378,7 +378,7 @@ Shader "CloudSystem"
 		
 		const float terrain = 6100000;
 		
-		clip(pos.y - terrain);
+		clip(pos.y);
 		
 		float extinct = 1.0;
 
@@ -431,15 +431,6 @@ Shader "CloudSystem"
 	}
 }
 }
-
-
-
-
-
-
-
-
-
 
 
 /*
