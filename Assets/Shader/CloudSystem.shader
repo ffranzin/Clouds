@@ -100,8 +100,7 @@ Shader "CloudSystem"
 	uniform float CLOUD_HEIGHT_TOP;
 	uniform float CLOUD_HEIGHT_BOTTOM;
 	uniform float CLOUD_TRICKNESS;
-	uniform float terrain = 6000000;
-
+	
 	float4 lightDir;
 
 	const float INFINITY = 1e15;
@@ -196,8 +195,13 @@ Shader "CloudSystem"
 		float bottom = RayPlaneIntersect(eyePosition, CLOUD_HEIGHT_BOTTOM);
 		float top = RayPlaneIntersect(eyePosition, CLOUD_HEIGHT_TOP);
 
-		if (bottom > top)
+		float ch = length(eyePosition - PLANET_CENTER) - PLANET_RADIUS;
+
+		if (ch < CLOUD_HEIGHT_BOTTOM)
 			return float2(bottom, top);
+		else if(ch > CLOUD_HEIGHT_TOP)	
+			return float2(top, bottom);
+
 		return float2(top, bottom);
 	}
 
@@ -206,6 +210,7 @@ Shader "CloudSystem"
 	{
 		float2 CloudHitDistanceBottom = raySphereIntersect(EyePosition, PLANET_RADIUS + CLOUD_HEIGHT_BOTTOM);
 		float2 CloudHitDistanceTop = raySphereIntersect(EyePosition, PLANET_RADIUS + CLOUD_HEIGHT_TOP);
+
 		float2 CloudHitDistance;
 		
 		/// ** height of CameraPos and earthCenter
@@ -217,22 +222,28 @@ Shader "CloudSystem"
 		if (ch < CLOUD_HEIGHT_BOTTOM) ///  **abaixo das nuvens
 		{
 			CloudHitDistance = float2(CloudHitDistanceBottom.y, CloudHitDistanceTop.y);
+			
+			//float h = EyePosition.y + PLANET_RADIUS;
+			//if (VIEWER_DIR.y < 0.0f)
+			//	clip(h * h * (1.0 - VIEWER_DIR.y * VIEWER_DIR.y) - PLANET_RADIUS * PLANET_RADIUS);
+
 		}
 		else if (ch > CLOUD_HEIGHT_TOP) ///  **acima das nuvens
 		{
-			if (CloudHitDistanceBottom.x > 0.0)
+			if (CloudHitDistanceBottom.x > -INFINITY)
 				CloudHitDistance = float2(CloudHitDistanceTop.x, CloudHitDistanceBottom.x);
 			else
-				CloudHitDistance = float2(0.0, CloudHitDistanceBottom.x);
+				CloudHitDistance = float2(0.0, -1.0);//not hit
 		}
-		else ///**Position between bottom and top of clouds
+		/*
+		else /// **Position between bottom and top of clouds
 		{
 			if (CloudHitDistanceBottom.x < 0.0)
 				CloudHitDistance = float2(0.0, CloudHitDistanceTop.y);  //hit top cloud only
 			else
 				CloudHitDistance = float2(0.0, CloudHitDistanceBottom.x);  //hit bottom cloud only
 		}
-
+		*/
 		return CloudHitDistance;
 	}
 
@@ -352,15 +363,10 @@ Shader "CloudSystem"
 		PLANET_CENTER		= 0.0;
 
 		float2 CloudHitDistance = GetHitSphericalDistance(EyePosition);
-		//float2 CloudHitDistance = GetHitPlanarDistance(EyePosition);
 
-		float2 CloudHitDistanceBottom = raySphereIntersect(EyePosition, PLANET_RADIUS + CLOUD_HEIGHT_BOTTOM);
+		//if (CloudHitDistance.x > depth)		clip(-1);
 
-
-		//if (CloudHitDistance.x > depth)		//clip(-1);
-		//	return fixed4(1,1,0,1);
-			
-		CloudHitDistance.y = min(depth, CloudHitDistance.y);
+		//CloudHitDistance.y = min(depth, CloudHitDistance.y);
 
 		float inScatteringAngle = dot(VIEWER_DIR, LightDirection);
 
@@ -368,7 +374,9 @@ Shader "CloudSystem"
 
 		float3 rayStep = VIEWER_DIR * rayStepLength;
 
-		float3 pos = EyePosition + (CloudHitDistance.x * VIEWER_DIR);
+		float3 pos = EyePosition + (CloudHitDistance.x * VIEWER_DIR);	
+		
+		const float terrain = 6100000;
 		
 		clip(pos.y - terrain);
 		
@@ -421,7 +429,7 @@ Shader "CloudSystem"
 	}
 		ENDCG
 	}
-	}
+}
 }
 
 
@@ -454,3 +462,4 @@ Shader "CloudSystem"
 		return smoothstep(gradient.x, gradient.y, a) - smoothstep(gradient.z, gradient.w, a);
 	}
 	*/
+	
