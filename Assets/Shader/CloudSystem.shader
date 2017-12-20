@@ -100,6 +100,7 @@ Shader "CloudSystem"
 	uniform float CLOUD_HEIGHT_TOP;
 	uniform float CLOUD_HEIGHT_BOTTOM;
 	uniform float CLOUD_TRICKNESS;
+	uniform float terrain = 6000000;
 
 	float4 lightDir;
 
@@ -206,7 +207,7 @@ Shader "CloudSystem"
 		float2 CloudHitDistanceBottom = raySphereIntersect(EyePosition, PLANET_RADIUS + CLOUD_HEIGHT_BOTTOM);
 		float2 CloudHitDistanceTop = raySphereIntersect(EyePosition, PLANET_RADIUS + CLOUD_HEIGHT_TOP);
 		float2 CloudHitDistance;
-
+		
 		/// ** height of CameraPos and earthCenter
 		float ch = length(EyePosition - PLANET_CENTER) - PLANET_RADIUS; /// ** distance of cameraPos to earthBorder
 
@@ -349,25 +350,16 @@ Shader "CloudSystem"
 		CLOUD_TRICKNESS		= _CloudHeight.z;
 		PLANET_RADIUS		= _CloudHeight.w;
 		PLANET_CENTER		= 0.0;
-		
-		
-		float bottom = RayPlaneIntersect(EyePosition, CLOUD_HEIGHT_BOTTOM);
-		float top = RayPlaneIntersect(EyePosition, CLOUD_HEIGHT_TOP);
 
-		if(bottom < INFINITY)
-			return fixed4(0,0,1,1);
-		if(top < INFINITY)
-			return fixed4(0,1,1,1);
+		float2 CloudHitDistance = GetHitSphericalDistance(EyePosition);
+		//float2 CloudHitDistance = GetHitPlanarDistance(EyePosition);
 
+		float2 CloudHitDistanceBottom = raySphereIntersect(EyePosition, PLANET_RADIUS + CLOUD_HEIGHT_BOTTOM);
 
-
-		//float2 CloudHitDistance = GetHitSphericalDistance(EyePosition);
-		float2 CloudHitDistance = GetHitPlanarDistance(EyePosition);
 
 		//if (CloudHitDistance.x > depth)		//clip(-1);
 		//	return fixed4(1,1,0,1);
-		
-		return fixed4(1,0,0,1);
+			
 		CloudHitDistance.y = min(depth, CloudHitDistance.y);
 
 		float inScatteringAngle = dot(VIEWER_DIR, LightDirection);
@@ -377,7 +369,9 @@ Shader "CloudSystem"
 		float3 rayStep = VIEWER_DIR * rayStepLength;
 
 		float3 pos = EyePosition + (CloudHitDistance.x * VIEWER_DIR);
-	
+		
+		clip(pos.y - terrain);
+		
 		float extinct = 1.0;
 
 		float opticalDepth = 0.0;
