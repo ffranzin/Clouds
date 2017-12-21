@@ -120,7 +120,8 @@ Shader "CloudSystem"
 
 	float Remap(float org_val,float org_min,float org_max,float new_min,float new_max)
 	{
-		return new_min + saturate(((org_val - org_min) / (org_max - org_min))*(new_max - new_min));
+		//return new_min + saturate(((org_val - org_min) / (org_max - org_min))*(new_max - new_min));
+		return new_min + ((org_val - org_min) / (org_max - org_min))*(new_max - new_min);
 	}
 
 	float2 raySphereIntersect(float3 pos, float radius)
@@ -425,7 +426,6 @@ Shader "CloudSystem"
 		float horizonFade = (1 - saturate(5 / PLANET_RADIUS));
 		color *= horizonFade;
 		return fixed4(color);
-
 	}
 		ENDCG
 	}

@@ -1,0 +1,211 @@
+fileFormatVersion: 2
+guid: a6c4271704c64414ea075aac0866a9af
+timeCreated: 1513817650
+licenseType: Free
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: _backPartRemu
+    100002: _cabineRemu
+    100004: _eixoFrontalL
+    100006: _eixoFrontalR
+    100008: _eixoMeioL
+    100010: _eixoMeioR
+    100012: _eixoRemu
+    100014: _eixoTraseiroL
+    100016: _eixoTraseiroR
+    100018: _patolaRemu
+    100020: _pistoesFrontaisRemu
+    100022: _pistoesTraseirosRemu
+    100024: _rodaFrontalL
+    100026: _rodaFrontalR
+    100028: _rodaMeioL
+    100030: _rodaMeioR
+    100032: _rodaTraseiraL
+    100034: _rodaTraseiraR
+    100036: Braco01
+    100038: Braco02
+    100040: Braco03
+    100042: Braco04
+    100044: BracoBase
+    100046: //RootNode
+    400000: _backPartRemu
+    400002: _cabineRemu
+    400004: _eixoFrontalL
+    400006: _eixoFrontalR
+    400008: _eixoMeioL
+    400010: _eixoMeioR
+    400012: _eixoRemu
+    400014: _eixoTraseiroL
+    400016: _eixoTraseiroR
+    400018: _patolaRemu
+    400020: _pistoesFrontaisRemu
+    400022: _pistoesTraseirosRemu
+    400024: _rodaFrontalL
+    400026: _rodaFrontalR
+    400028: _rodaMeioL
+    400030: _rodaMeioR
+    400032: _rodaTraseiraL
+    400034: _rodaTraseiraR
+    400036: Braco01
+    400038: Braco02
+    400040: Braco03
+    400042: Braco04
+    400044: BracoBase
+    400046: //RootNode
+    2100000: BackPartRemu
+    2100002: Roda
+    2100004: cabineRemu
+    2100006: Vidro
+    2100008: Patola
+    2100010: Pistoes
+    2100012: Eixo
+    2300000: _backPartRemu
+    2300002: _cabineRemu
+    2300004: _eixoFrontalL
+    2300006: _eixoFrontalR
+    2300008: _eixoMeioL
+    2300010: _eixoMeioR
+    2300012: _eixoRemu
+    2300014: _eixoTraseiroL
+    2300016: _eixoTraseiroR
+    2300018: _patolaRemu
+    2300020: _pistoesFrontaisRemu
+    2300022: _pistoesTraseirosRemu
+    2300024: _rodaFrontalL
+    2300026: _rodaFrontalR
+    2300028: _rodaMeioL
+    2300030: _rodaMeioR
+    2300032: _rodaTraseiraL
+    2300034: _rodaTraseiraR
+    2300036: Braco01
+    2300038: Braco02
+    2300040: Braco03
+    2300042: Braco04
+    2300044: BracoBase
+    3300000: _backPartRemu
+    3300002: _cabineRemu
+    3300004: _eixoFrontalL
+    3300006: _eixoFrontalR
+    3300008: _eixoMeioL
+    3300010: _eixoMeioR
+    3300012: _eixoRemu
+    3300014: _eixoTraseiroL
+    3300016: _eixoTraseiroR
+    3300018: _patolaRemu
+    3300020: _pistoesFrontaisRemu
+    3300022: _pistoesTraseirosRemu
+    3300024: _rodaFrontalL
+    3300026: _rodaFrontalR
+    3300028: _rodaMeioL
+    3300030: _rodaMeioR
+    3300032: _rodaTraseiraL
+    3300034: _rodaTraseiraR
+    3300036: Braco01
+    3300038: Braco02
+    3300040: Braco03
+    3300042: Braco04
+    3300044: BracoBase
+    4300000: _backPartRemu
+    4300002: _cabineRemu
+    4300004: _patolaRemu
+    4300006: _pistoesTraseirosRemu
+    4300008: _pistoesFrontaisRemu
+    4300010: BracoBase
+    4300012: Braco01
+    4300014: Braco02
+    4300016: Braco03
+    4300018: Braco04
+    4300020: _eixoRemu
+    4300022: _eixoFrontalR
+    4300024: _rodaFrontalR
+    4300026: _eixoMeioL
+    4300028: _rodaMeioL
+    4300030: _eixoMeioR
+    4300032: _rodaMeioR
+    4300034: _eixoTraseiroL
+    4300036: _rodaTraseiraL
+    4300038: _eixoTraseiroR
+    4300040: _rodaTraseiraR
+    4300042: _eixoFrontalL
+    4300044: _rodaFrontalL
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
