@@ -1,4 +1,14 @@
 ﻿
+/*
+					TODO
+
+	Ajustar o depth.
+
+
+*/
+
+
+
 Shader "CloudSystem"
 {
 	Properties
@@ -29,13 +39,15 @@ Shader "CloudSystem"
 	{
 		float4 vertex : POSITION;
 		float2 uv : TEXCOORD0;
+		float3 ray : TEXCOORD1;
 	};
 
 	struct clouds_v2f
 	{
 		float4 position : SV_POSITION;
 		float2 uv : TEXCOORD0;
-		float3 cameraRay : TEXCOORD2;
+		float3 ray : TEXCOORD1;
+		float3 interpolatedRay : TEXCOORD2;
 	};
 
 	float4x4 _InverseProjection;
@@ -56,8 +68,8 @@ Shader "CloudSystem"
 		o.position = UnityObjectToClipPos(v.vertex);
 		o.uv = v.uv;
 
-		o.cameraRay = UVToCameraRay(o.uv);
-
+		o.ray = UVToCameraRay(o.uv);
+		o.interpolatedRay = v.ray.xyz;
 		return o;
 	}
 
@@ -268,9 +280,7 @@ Shader "CloudSystem"
 		
 		coverage = pow(coverage, Remap(height, .7, 1, .8, lerp(1, .1, float_test)));
 
-		cloudDensity = Remap(cloudDensity, coverage, 1, 0, 1);
-
-		//cloudDensity *= coverage;
+		cloudDensity *= coverage;
 
 		float gradient = tex2Dlod(_Gradient, float4(((cloudType *.3)), height, 0, 0)).r;
 		
@@ -300,14 +310,13 @@ Shader "CloudSystem"
 	//Retorna um valor entre 0-1, sendo 0 proximo a CLOUD_HEIGHT_BOTTOM e 1 CLOUD_HEIGHT_TOP
 	float CalcHeight(float3 pos)
 	{
-		float distPos_planetCenter = distance(pos, PLANET_CENTER);
-
-		float distPos_Ground = distPos_planetCenter - PLANET_RADIUS;
+		float distPos_Ground = distance(pos, PLANET_CENTER) - PLANET_RADIUS;
 
 		float h = distPos_Ground - CLOUD_HEIGHT_BOTTOM; // distancia entre o pixel ate a borda inferior da nuvem
 
 		return saturate(h / CLOUD_TRICKNESS);
 	}
+
 
 
 	float3 SampleLight(float3 pos, float3 LightDirection, float3 LightColor, float inScatteringAngle)
@@ -343,7 +352,63 @@ Shader "CloudSystem"
 		return LightColor * extinct * hg;
 	}
 
-	
+
+
+	bool SampleDensityToShadow(float3 pos, float height, float3 weatherData)
+	{
+		const float baseFreq = 1e-6;
+		float4 coord = float4(pos * baseFreq * _BaseNoiseTexUVScale, 0.0);
+
+		float4 baseNoise = tex3Dlod(_NoiseTex, coord);
+
+		float baseFbm = dot(baseNoise.gba, float3(0.625, 0.25, 0.125));
+
+		float cloudDensity = baseNoise.r;
+		
+		cloudDensity = Remap(cloudDensity, 1-baseFbm, 1.0, 0.0, 1.0);
+		
+		float coverage = weatherData.b;
+		
+		coverage = pow(coverage, Remap(height, .7, 1, .8, lerp(1, .1, float_test)));
+
+		cloudDensity *= coverage;
+
+		float gradient = tex2Dlod(_Gradient, float4(((cloudType *.3)), height, 0, 0)).r;
+		
+		cloudDensity *= gradient;
+		
+		cloudDensity = Remap(cloudDensity, 0, _NoiseThreshold, 0.0, 1.0);
+
+		return cloudDensity > 0 ? true : false;
+	}
+
+
+
+	bool IsBelowBottomCloud(float3 pos)
+	{
+		float distPos_Ground = distance(pos, PLANET_CENTER)- PLANET_RADIUS;
+
+		return distPos_Ground < CLOUD_HEIGHT_BOTTOM ? true : false;
+	}
+
+
+
+	inline float3 UvToWorld(float3 camPos, float3 interpolatedRay, float depth)
+	{
+		float3 wsDir = depth * interpolatedRay;
+		float3 wsPos = camPos + wsDir;
+
+		return wsPos;
+	}
+
+	bool CloudShadow()
+	{
+		return true;
+	}
+
+
+
+
 
 	//////////////////////////////////////////////////
 	//////////    Fragment Program   /////////////////
@@ -351,27 +416,27 @@ Shader "CloudSystem"
 	float4 CloudVolumeHighPS(clouds_v2f Input) : SV_Target
 	{
 		float2 uv = Input.uv;
+		float3 ray = Input.interpolatedRay;
 
-		float depth = UNITY_SAMPLE_DEPTH(tex2D(_CameraDepthTexture, uv));
-
-		depth = LinearEyeDepth(depth);
-
-		float3 EyePosition		= _WorldSpaceCameraPos;
+		float depth01 = Linear01Depth(DecodeFloatRG(tex2D(_CameraDepthTexture, uv)));
+		float depth =  LinearEyeDepth(UNITY_SAMPLE_DEPTH(tex2D(_CameraDepthTexture, uv)));
+		
+		float3 uvWorldPos = UvToWorld(_WorldSpaceCameraPos, ray, depth01);
 		float3 LightDirection	= -normalize(lightDir);
 		float3 LightColor		= _LightColor.xyz;
 
-		VIEWER_DIR = normalize(Input.cameraRay);
+		VIEWER_DIR = normalize(Input.ray);
 		VIEWER_POS = _WorldSpaceCameraPos;
 
 		CLOUD_HEIGHT_BOTTOM = _CloudHeight.x;
 		CLOUD_HEIGHT_TOP	= _CloudHeight.y;
 		CLOUD_TRICKNESS		= _CloudHeight.z;
 		PLANET_RADIUS		= _CloudHeight.w;
-		PLANET_CENTER		= float3(0, -PLANET_RADIUS, 0);
+		PLANET_CENTER		= float3(0, -PLANET_RADIUS, 0); //-Pl_radius to avoid high float
 
-		float2 CloudHitDistance = GetHitSphericalDistance(EyePosition);
+		float2 CloudHitDistance = GetHitSphericalDistance(VIEWER_POS);
 
-		clip(depth - CloudHitDistance.x);
+		clip(depth - CloudHitDistance.y);
 
 		//CloudHitDistance.y = min(depth, CloudHitDistance.y);
 
@@ -381,7 +446,7 @@ Shader "CloudSystem"
 
 		float3 rayStep = VIEWER_DIR * rayStepLength;
 
-		float3 pos = EyePosition + (CloudHitDistance.x * VIEWER_DIR);	
+		float3 pos = VIEWER_POS + (CloudHitDistance.x * VIEWER_DIR);	
 		
 		const float terrain = 6100000;
 		
@@ -426,6 +491,13 @@ Shader "CloudSystem"
 
 			pos += rayStep;
 		}
+
+		if(IsBelowBottomCloud(uvWorldPos) && opticalDepth == 0) 
+		{
+			if(CloudShadow())
+				return tex2D(_MainTex, uv) + float4(1,0,0,1) * .5;
+		}
+
 
 		color.a = 1.0 - Beer(opticalDepth);
 
