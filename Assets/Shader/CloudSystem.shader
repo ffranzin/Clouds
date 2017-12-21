@@ -120,7 +120,7 @@ Shader "CloudSystem"
 
 	float Remap(float org_val,float org_min,float org_max,float new_min,float new_max)
 	{
-		//return new_min + saturate(((org_val - org_min) / (org_max - org_min))*(new_max - new_min));
+		return new_min + saturate(((org_val - org_min) / (org_max - org_min))*(new_max - new_min));
 		return new_min + ((org_val - org_min) / (org_max - org_min))*(new_max - new_min);
 	}
 
@@ -262,9 +262,15 @@ Shader "CloudSystem"
 		
 		cloudDensity = Remap(cloudDensity, 1-baseFbm, 1.0, 0.0, 1.0);
 		
-		float weatherType = weatherData.b;
+		//cloudDensity = Remap(cloudDensity, weatherData.b, 1, 0, 1);
+
+		float coverage = weatherData.b;
 		
-		cloudDensity *= weatherType;
+		coverage = pow(coverage, Remap(height, .7, 1, .8, lerp(1, .1, float_test)));
+
+		cloudDensity = Remap(cloudDensity, coverage, 1, 0, 1);
+
+		//cloudDensity *= coverage;
 
 		float gradient = tex2Dlod(_Gradient, float4(((cloudType *.3)), height, 0, 0)).r;
 		
