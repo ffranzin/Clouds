@@ -73,8 +73,6 @@ public class Tests : MonoBehaviour
                 fov = Mathf.FloorToInt(Camera.main.fieldOfView);
                 MyFrunstumCorner();
             }
-                
-            
             yield return null;
         }
         

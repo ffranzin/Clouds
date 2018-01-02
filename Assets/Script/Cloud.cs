@@ -71,8 +71,8 @@ public class Cloud : MonoBehaviour {
     public int int_test;
     [Range(0, 1)]
     public float float_test;
-
-
+    public float circleRadiusTest;
+    public Vector2 circleTest;
     // Use this for initialization
     void Start () {
         Camera.main.depthTextureMode = DepthTextureMode.Depth;
@@ -143,10 +143,10 @@ public class Cloud : MonoBehaviour {
         SetParams();
         ///render cloud
         CustomGraphicsBlit(src, dest, EffectMaterial, 0);
+        
         //depth test
         Graphics.Blit(src, dest);
-
-       //  Graphics.Blit(src, dest, _EffectMaterial);
+        
     }
 
 
@@ -202,10 +202,13 @@ public class Cloud : MonoBehaviour {
 
         EffectMaterial.SetInt("test", test);
         EffectMaterial.SetFloat("float_test", float_test);
+
+        EffectMaterial.SetFloat("circleRadiusTest", circleRadiusTest);
+        EffectMaterial.SetVector("circleTest", new Vector4(circleTest.x, 0, circleTest.y, 0));
+
         EffectMaterial.SetInt("int_test", int_test);
     }
 
-    
     //static void CustomGraphicsBlit( Material fxMaterial, int nPass)
     //{
     //    // RenderTexture.active = dest;
