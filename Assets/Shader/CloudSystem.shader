@@ -115,9 +115,9 @@ Shader "CloudSystem"
 			uniform float CLOUD_HEIGHT_TOP;
 			uniform float CLOUD_HEIGHT_BOTTOM;
 			uniform float CLOUD_TRICKNESS;
-			uniform float4 circleTest;
-			uniform float circleRadiusTest;
 			
+			uniform float circleRadiusTest;
+			uniform float4 circleTest;
 
 			float4 lightDir;
 
@@ -209,9 +209,9 @@ Shader "CloudSystem"
 			}
 
 
-			bool IsInsideCircle(float3 pos)
+			bool IsInsideSphere(float3 pos)
 			{
-				float d = distance(circleTest.xz, pos.xz);
+				float d = distance(float3(25000, 3000, 1000), pos);
 				return d < circleRadiusTest  ? .9 : 0; 
 			}
 
@@ -277,9 +277,6 @@ Shader "CloudSystem"
 		
 			float SampleCloud(float3 pos, float height, float3 weatherData, bool sampleDetail)
 			{
-				
-				return IsInsideCircle(pos);
-
 				const float baseFreq = 1e-6;
 				float4 coord = float4(pos * baseFreq * _BaseNoiseTexUVScale, 0.0);
 
@@ -453,7 +450,13 @@ Shader "CloudSystem"
 				PLANET_CENTER		= float3(0, -PLANET_RADIUS, 0); //-Pl_radius to avoid high float
 
 				float2 CloudHitDistance = GetHitSphericalDistance(VIEWER_POS, VIEWER_DIR);
-		
+				
+
+				if(IsInsideSphere(uvWorldPos) > 0)
+					return fixed4(1,0,0,1);
+
+
+
 				//this is only to clouds, unused to shadows
 				if((depth - CloudHitDistance.x < 0) && (uvWorldPos.y - CLOUD_HEIGHT_BOTTOM < 0))
 					clip(-1);
@@ -526,8 +529,6 @@ Shader "CloudSystem"
 			}
 			ENDCG
 		}
-
-
 	}
 }
 

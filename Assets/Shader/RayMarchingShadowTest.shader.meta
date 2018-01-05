@@ -1,0 +1,11 @@
+fileFormatVersion: 2
+guid: f3ff394fdffbe58499734b5b32d73693
+timeCreated: 1513688540
+licenseType: Free
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures:
+  - _WeatherTex: {fileID: 2800000, guid: becb26c12bc5ae14182c1dcd606b1b84, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
