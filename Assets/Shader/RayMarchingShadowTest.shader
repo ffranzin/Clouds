@@ -111,7 +111,7 @@ Shader "CloudSystem"
 
 			bool test(float3 pos, float radius, float3 rayDir, float3 center)
 			{
-				return distance(pos, center) < radius * radius ? true : false;
+				return distance(pos, center) < radius ? true : false;
 			}
 
 
@@ -131,12 +131,15 @@ Shader "CloudSystem"
 				VIEWER_DIR = normalize(Input.ray);
 				VIEWER_POS = _WorldSpaceCameraPos;
 
+				float raySphere = 1;
+				float3 centerSphere = float3(0,1,0);
+ 
 
-				if(IsinsideSphere(uvWorldPos, float3(0,1,0), VIEWER_DIR, 1))
+				if(IsinsideSphere(uvWorldPos, centerSphere, VIEWER_DIR, raySphere))
 					return fixed4(1,0,0,1);
 
 				
-				if(depth01 < 1 && test(uvWorldPos, 1, LightDirection, float3(0,1,0)))
+				if(depth01 < 1 && test(uvWorldPos, raySphere, LightDirection, centerSphere))
 					return fixed4(0,0,1,1);
 				
 
