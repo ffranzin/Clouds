@@ -76,7 +76,6 @@ Shader "CloudSystem"
 				return o;
 			}
 
-
 			uniform sampler2D _CameraDepthTexture;
 
 			sampler2D _MainTex;
@@ -134,6 +133,14 @@ Shader "CloudSystem"
 	
 			int int_test;
 			float float_test;
+
+			inline float3 UvToWorld(float3 camPos, float3 interpolatedRay, float depth)
+			{
+				float3 wsDir = depth * interpolatedRay;
+				float3 wsPos = camPos + wsDir;
+
+				return wsPos;
+			}
 
 
 			float Remap(float org_val,float org_min,float org_max,float new_min,float new_max)
@@ -196,6 +203,7 @@ Shader "CloudSystem"
 			float Beer(float opticalDepth)
 			{
 				return exp(-_CloudParams.w * 0.01 * opticalDepth);
+
 			}
 
 
@@ -206,13 +214,6 @@ Shader "CloudSystem"
 				float2 uv = unit * 0.5 + 0.5;
 
 				return tex2Dlod(_WeatherTex, float4(uv, 1.0, 1.0));
-			}
-
-
-			bool IsInsideSphere(float3 pos)
-			{
-				float d = distance(float3(25000, 3000, 1000), pos);
-				return d < circleRadiusTest  ? .9 : 0; 
 			}
 
 
@@ -274,7 +275,7 @@ Shader "CloudSystem"
 				return CloudHitDistance;
 			}
 
-		
+			
 			float SampleCloud(float3 pos, float height, float3 weatherData, bool sampleDetail)
 			{
 				const float baseFreq = 1e-6;
@@ -301,7 +302,7 @@ Shader "CloudSystem"
 				cloudDensity *= gradient;
 		
 				cloudDensity = Remap(cloudDensity, 0, _NoiseThreshold, 0.0, 1.0);
-		
+				
 				if (sampleDetail && cloudDensity > 0)
 				{
 					coord = float4(pos * baseFreq * _erode * _DetailNoiseTexUVScale * 100, 0.0);
@@ -316,11 +317,12 @@ Shader "CloudSystem"
 			
 					cloudDensity = Remap(cloudDensity, detailCloudDensity, 1.0, 0.0, 1.0);
 				}
+				//cloudDensity *= borderHullDistance(pos);
 
 				return saturate(_CloudDensityScale * cloudDensity);
 			}
 
-
+			
 			//Retorna um valor entre 0-1, sendo 0 proximo a CLOUD_HEIGHT_BOTTOM e 1 CLOUD_HEIGHT_TOP
 			float CalcHeight(float3 pos)
 			{
@@ -367,62 +369,6 @@ Shader "CloudSystem"
 			}
 
 
-
-			float SampleShadow(float3 uvPos, float3 depth)
-			{
-				float _MaxSteps = 30;
-
-				float3 dir = normalize(lightDir);
-
-				float2 CloudHitDistance = GetHitSphericalDistance(uvPos, dir);
-
-				float3 pos = uvPos + (CloudHitDistance.x * dir);
-		
-				float rayStepLength = abs((CloudHitDistance.y - CloudHitDistance.x) / _MaxSteps);
-
-				float3 rayStep = dir * rayStepLength;
-
-				float opticalDepth = 0;
-
-				for (int i = 0; i < _MaxSteps; i++)
-				{
-					float height = CalcHeight(pos);
-
-					float3 weatherData = SampleWeather(pos);
-
-					float cloudDensity = SampleCloud(pos, height, weatherData, true);
-					
-					float currentOpticalDepth = cloudDensity * rayStepLength * _CloudParams.z;
-
-					opticalDepth += currentOpticalDepth;
-
-					pos += rayStep;
-				}
-
-				return opticalDepth;
-			}
-
-
-
-			bool IsBelowBottomCloud(float3 pos)
-			{
-				return true;
-				float distPos_Ground = distance(pos, PLANET_CENTER)- PLANET_RADIUS;
-
-				return distPos_Ground < CLOUD_HEIGHT_BOTTOM ? true : false;
-			}
-
-
-
-			inline float3 UvToWorld(float3 camPos, float3 interpolatedRay, float depth)
-			{
-				float3 wsDir = depth * interpolatedRay;
-				float3 wsPos = camPos + wsDir;
-
-				return wsPos;
-			}
-
-			
 			//////////////////////////////////////////////////
 			//////////    Fragment Program   /////////////////
 			//////////////////////////////////////////////////
@@ -435,10 +381,9 @@ Shader "CloudSystem"
 				float depth =  LinearEyeDepth(UNITY_SAMPLE_DEPTH(tex2D(_CameraDepthTexture, uv)));
 		
 				float3 uvWorldPos = UvToWorld(_WorldSpaceCameraPos, ray, depth01);
-				float3 LightDirection	= -normalize(lightDir);
-				float3 LightColor		= _LightColor.xyz;
+				float3 LightDirection = -normalize(lightDir);
+				float3 LightColor	= _LightColor.xyz;
 
-				//return fixed4(LightDirection, 1);
 
 				VIEWER_DIR = normalize(Input.ray);
 				VIEWER_POS = _WorldSpaceCameraPos;
@@ -447,16 +392,13 @@ Shader "CloudSystem"
 				CLOUD_HEIGHT_TOP	= _CloudHeight.y;
 				CLOUD_TRICKNESS		= _CloudHeight.z;
 				PLANET_RADIUS		= _CloudHeight.w;
-				PLANET_CENTER		= float3(0, -PLANET_RADIUS, 0); //-Pl_radius to avoid high float
+				//PLANET_CENTER		= float3(0, -PLANET_RADIUS, 0); //-Pl_radius to avoid high float
+				PLANET_CENTER		= float3(0, 0, 0); //-Pl_radius to avoid high float
+
+				//return fixed4(borderHullDistance(uvWorldPos), 0,0,1);
 
 				float2 CloudHitDistance = GetHitSphericalDistance(VIEWER_POS, VIEWER_DIR);
 				
-
-				if(IsInsideSphere(uvWorldPos) > 0)
-					return fixed4(1,0,0,1);
-
-
-
 				//this is only to clouds, unused to shadows
 				if((depth - CloudHitDistance.x < 0) && (uvWorldPos.y - CLOUD_HEIGHT_BOTTOM < 0))
 					clip(-1);
@@ -468,24 +410,20 @@ Shader "CloudSystem"
 				float3 rayStep = VIEWER_DIR * rayStepLength;
 
 				float3 pos = VIEWER_POS + (CloudHitDistance.x * VIEWER_DIR);	
-		
-				clip(pos.y);
-		
+				
+				//clip(pos.y);
+				
 				float extinct = 1.0;
 
 				float opticalDepth = 0.0;
 
 				float4 color = 0.0;
-				float4 color1 = 0.0;
 
-				if(IsBelowBottomCloud(uvWorldPos)) 
-				{
-					if(SampleShadow(uvWorldPos, depth) > 1)
-						color1 = tex2D(_MainTex, uv) + float4(.2,0,0,.2);
-				}
-		
+				float cloudViewerDistance = distance(pos, VIEWER_POS);
+
 				for (int i = 0; i < _MaxSteps; i++)
 				{
+					pos += rayStep;
 					float height = CalcHeight(pos);
 
 					if (extinct < 0.01)	break;
@@ -514,15 +452,11 @@ Shader "CloudSystem"
 
 						color.rgb += (ambientLight + sunLight) * extinct;
 					}
-
-					pos += rayStep;
+					
 				}
-
-				if(opticalDepth == 0 && depth01 < 1)
-					return color1;
-		
+				
 				color.a = 1.0 - Beer(opticalDepth);
-
+				
 				float horizonFade = (1 - saturate(5 / PLANET_RADIUS));
 				color *= horizonFade;
 				return fixed4(color);

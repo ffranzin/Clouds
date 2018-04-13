@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-
+using System.Collections.Generic;
 
 [ExecuteInEditMode]
 public class Cloud : MonoBehaviour {
@@ -72,6 +72,7 @@ public class Cloud : MonoBehaviour {
     [Range(0, 1)]
     public float float_test;
 
+    public List<Transform> hull;
 
     // Use this for initialization
     void Start () {
@@ -150,6 +151,7 @@ public class Cloud : MonoBehaviour {
     }
 
 
+    Vector4[] testarray = new Vector4[10];
 
     private void SetParams()
     {
@@ -204,6 +206,7 @@ public class Cloud : MonoBehaviour {
         EffectMaterial.SetFloat("float_test", float_test);
         
         EffectMaterial.SetInt("int_test", int_test);
+        
     }
 
     //static void CustomGraphicsBlit( Material fxMaterial, int nPass)

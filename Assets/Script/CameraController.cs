@@ -5,7 +5,7 @@ using UnityEngine;
 public class CameraController : MonoBehaviour {
 
     private Vector2 mouseLastPosition;
-    public float maxSpeed = 40000;
+    public float maxSpeed = 1000;
     public float minSpeed = 7;
 
     float speed = 7000;
@@ -23,12 +23,9 @@ public class CameraController : MonoBehaviour {
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
     public long dist = 10;
-    public long distout = 10;
 
     // Update is called once per frame
     void Update () {
-
-        distout = Remap(dist, 100000, 10000, 40, 200);
 
         SetCameraToPosition();
 
@@ -56,13 +53,13 @@ public class CameraController : MonoBehaviour {
         }
         if (Input.GetKey(KeyCode.LeftControl))
         {
-            speed = 10000;
+            speed = 100;
             mouseSpeed = 10;
         }
-        
 
-        maxSpeed += Input.mouseScrollDelta.y * 500;
-        
+
+        //maxSpeed += Input.mouseScrollDelta.y * 500;
+
         if (Input.GetKey(KeyCode.W))
             transform.position += transform.forward * speed * Time.deltaTime;
         if (Input.GetKey(KeyCode.S))
